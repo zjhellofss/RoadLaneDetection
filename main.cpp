@@ -17,9 +17,11 @@ int main(int argc, char *argv[])
     bpo::options_description opts("all options");
     bpo::variables_map vm;
     int threshold = 0, length = 0;
+    float distance = 0;
     opts.add_options()
             ("filename,f", bpo::value<std::string>(), "图像路径")
             ("threshold,t", bpo::value<int>(&threshold)->default_value(190), "图像亮度阈值")
+            ("distance,d", bpo::value<float>(&distance)->default_value(50.0), "线条距离阈值")
             ("length,l", bpo::value<int>(&length)->default_value(50), "线段长度阈值");
     try
     {
@@ -38,18 +40,19 @@ int main(int argc, char *argv[])
     {
         return -1;
     }
+    brightness_contrast_auto(image, image, 1, 256, 0);
     //调整图像大小
     cv::Mat smaller_image;
     cv::resize(image, smaller_image, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
     cv::Mat target = smaller_image.clone();
 
     // 对比和亮度调整
-    brightness_contrast_auto(target, target, 0, 255, 0);
+    cv::imwrite("/home/fss/CLionProjects/RoadLaneDetection/tmp/ba.jpg", target);
 
     //阈值图像
     cv::Mat grayscale;
     combined_threshold(target, grayscale, threshold);
-    cv::imwrite("/home/fss/CLionProjects/RoadLaneDetection/tmp/ab.jpg",grayscale);
+    cv::imwrite("/home/fss/CLionProjects/RoadLaneDetection/tmp/ab.jpg", grayscale);
     auto height = grayscale.size().height;
     auto width = grayscale.size().width;
 
@@ -67,7 +70,7 @@ int main(int argc, char *argv[])
                 l1, l2,
                 1.,
                 12.0,
-                length);
+                distance);
     });
 
 

@@ -64,11 +64,12 @@ void brightness_contrast_auto(const cv::Mat &src, cv::Mat &dst, float clipHistPe
 static void sobel_thresh(cv::Mat const &src, cv::Mat &dest, int thresh_min = 0,
                          int thresh_max = 255)
 {
-    double min, max;
-    auto image = src.clone();
-    cv::minMaxLoc(image, &min, &max);
-    cv::Mat scaled = 255 * (image / max);
-    cv::inRange(scaled, cv::Scalar(thresh_min), cv::Scalar(thresh_max), dest);
+//    double min, max;
+//    auto image = src.clone();
+//    cv::minMaxLoc(image, &min, &max);
+//    cv::Mat scaled = 255 * (image / max);
+//    cv::inRange(scaled, cv::Scalar(thresh_min), cv::Scalar(thresh_max), dest);
+    cv::threshold(src, dest, thresh_min, thresh_max, 0);
 }
 
 void combined_threshold(const cv::Mat &img, cv::Mat &dst, int threshold)
@@ -80,7 +81,7 @@ void combined_threshold(const cv::Mat &img, cv::Mat &dst, int threshold)
     cv::split(undist_hls, hls_channels);
 
     cv::Mat back_img = hls_channels[1];
-    dst = back_img.clone();
+    cv::medianBlur(back_img, dst, 3);
     sobel_thresh(dst, dst, threshold, 255);
 
     cv::medianBlur(dst, dst, 5);
@@ -89,7 +90,7 @@ void combined_threshold(const cv::Mat &img, cv::Mat &dst, int threshold)
     auto kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
     cv::morphologyEx(dst, dst, cv::MORPH_CLOSE, kernel, cv::Point(-1, -1), 1);
 
-    cv::medianBlur(dst, dst, 5);
+    cv::medianBlur(dst, dst, 3);
     cv::GaussianBlur(dst, dst, cv::Size(3, 3), 0, 0);
 }
 
@@ -103,8 +104,9 @@ std::vector<cv::Vec4i> get_lines(const cv::Mat &gray_img, int length_threshold)
     int canny_aperture_size = 3;
     bool do_merge = true;
     cv::Ptr<FastLineDetector> fld = createFastLineDetector(length_threshold,
-                                                       distance_threshold, canny_th1, canny_th2, canny_aperture_size,
-                                                       do_merge);
+                                                           distance_threshold, canny_th1, canny_th2,
+                                                           canny_aperture_size,
+                                                           do_merge);
 
     std::vector<cv::Vec4f> lines;
     fld->detect(gray_img, lines);
@@ -120,14 +122,13 @@ std::vector<cv::Vec4i> get_lines(const cv::Mat &gray_img, int length_threshold)
 }
 
 
-
 static cv::Vec2d linear_parameters(cv::Vec4i line)
 {
     cv::Mat a = (cv::Mat_<double>(2, 2) <<
-                                line[0], 1,
+                                        line[0], 1,
             line[2], 1);
     cv::Mat y = (cv::Mat_<double>(2, 1) <<
-                                line[1],
+                                        line[1],
             line[3]);
     cv::Vec2d mc;
     solve(a, y, mc);
@@ -188,8 +189,9 @@ static std::vector<cv::Point2i> bounding_rectangle_contour(cv::Vec4i line, float
 static cv::Vec4i extended_line(cv::Vec4i line, double d)
 {
 
-    cv::Vec4d _line = line[2] - line[0] < 0 ? cv::Vec4d(line[2], line[3], line[0], line[1]) : cv::Vec4d(line[0], line[1], line[2],
-                                                                                            line[3]);
+    cv::Vec4d _line =
+            line[2] - line[0] < 0 ? cv::Vec4d(line[2], line[3], line[0], line[1]) : cv::Vec4d(line[0], line[1], line[2],
+                                                                                              line[3]);
     double m = linear_parameters(_line)[0];
 
     double xd = sqrt(d * d / (m * m + 1));
@@ -198,8 +200,9 @@ static cv::Vec4i extended_line(cv::Vec4i line, double d)
 }
 
 
-bool extended_bounding_rectangle_line_equivalence(const cv::Vec4i &_l1, const cv::Vec4i &_l2, float extensionLengthFraction,
-                                                  float maxAngleDiff, float boundingRectangleThickness)
+bool
+extended_bounding_rectangle_line_equivalence(const cv::Vec4i &_l1, const cv::Vec4i &_l2, float extensionLengthFraction,
+                                             float maxAngleDiff, float boundingRectangleThickness)
 {
 
     cv::Vec4i l1(_l1), l2(_l2);
