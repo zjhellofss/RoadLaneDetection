@@ -6,10 +6,10 @@
 #include <dbscan.h>
 
 #include "opencv2/imgproc.hpp"
-#include "opencv2/ximgproc.hpp"
 #include "boost/program_options.hpp"
 #include "image_utils.h"
 #include "lines.h"
+#include "removal_haze.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     brightness_contrast_auto(image, image, 1, 256, 0);
+    image = dehaze(image);
     //调整图像大小
     cv::Mat smaller_image;
     cv::resize(image, smaller_image, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     {
         return extended_bounding_rectangle_line_equivalence(
                 l1, l2,
-                1.,
+                .1,
                 12.0,
                 distance);
     });
