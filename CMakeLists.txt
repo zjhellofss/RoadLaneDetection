@@ -3,7 +3,7 @@ project(RoadLaneDetection)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(RoadLaneDetection main.cpp include/removal_haze.h source/removal_haze.cpp source/kdtree.cpp source/NFA.cpp include/NFA.h include/dbscan.h include/kdtree.h include/image_utils.h source/image_utils.cpp include/lines.h)
+add_executable(RoadLaneDetection main.cpp include/windowbox.h  source/windowbox.cpp include/removal_haze.h source/removal_haze.cpp source/kdtree.cpp source/NFA.cpp include/NFA.h include/dbscan.h include/kdtree.h include/image_utils.h source/image_utils.cpp include/lines.h)
 
 
 #########################################################

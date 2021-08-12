@@ -78,10 +78,16 @@ void combined_threshold(const cv::Mat &img, cv::Mat &dst, int threshold)
     cv::cvtColor(img, undist_hls, cv::COLOR_BGR2HLS);
 
     cv::Mat hls_channels[3];
-    cv::split(undist_hls, hls_channels);
+    cv::Mat hls_rgb[3];
 
-    cv::Mat back_img = hls_channels[1];
-    cv::medianBlur(back_img, dst, 3);
+    cv::split(undist_hls, hls_channels);
+    cv::split(img, hls_rgb);
+
+
+    cv::Mat back_img_l = hls_channels[1];
+    cv::addWeighted(back_img_l,0.75,hls_rgb[2],0.25,0,back_img_l);
+    cv::imwrite("/home/fss/CLionProjects/RoadLaneDetection/tmp/o5.jpg",back_img_l);
+    cv::medianBlur(back_img_l, dst, 3);
     sobel_thresh(dst, dst, threshold, 255);
 
     cv::medianBlur(dst, dst, 5);
